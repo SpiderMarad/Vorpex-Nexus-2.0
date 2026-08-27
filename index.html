@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#07090f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Vorpex Nexus</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/hero.css">
+    <link rel="stylesheet" href="css/games.css">
+    <link rel="stylesheet" href="css/gameOverlay.css">
+    <link rel="stylesheet" href="css/musicCenter.css">
+    <link rel="stylesheet" href="css/redesign.css">
+    <link rel="stylesheet" href="css/theme-engine.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/loading-screen.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+
+    <!-- ================= BOOT / LOADING SCREEN ================= -->
+    <div id="bootScreen" aria-hidden="false">
+        <div class="boot-scanlines"></div>
+        <div class="boot-grid"></div>
+        <div class="boot-content">
+            <div class="boot-logo">
+                <span class="boot-logo-ring"></span>
+                <span class="boot-logo-mark">V</span>
+            </div>
+            <h1 class="boot-title">VORPEX <span>NEXUS</span></h1>
+            <div class="boot-bar-track">
+                <div class="boot-bar-fill" id="bootBarFill"></div>
+            </div>
+            <p class="boot-status" id="bootStatus">Initializing system…</p>
+            <p class="boot-tip" id="bootTip">Tip: Press Esc to exit a game at any time.</p>
+        </div>
+        <button type="button" class="boot-skip" id="bootSkip">Skip ▶</button>
+    </div>
+
+    <div id="particles"></div>
+    <div class="background" id="backgroundLayer">
+        <div class="wallpaper-overlay"></div>
+    </div>
+
+    <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mainSidebar">
+        <span></span><span></span><span></span>
+    </button>
+    <div id="sidebarScrim"></div>
+
+    <aside class="sidebar" id="mainSidebar">
+
+    <div class="sidebar-brand">
+        <div class="brand-mark">V</div>
+
+        <div class="brand-text">
+            <strong>VORPEX</strong>
+            <span>NEXUS</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+
+        <div class="nav-section">
+            <span class="nav-label">Workspace</span>
+
+            <a href="#" class="active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-5v-6h-5v6h-5A1.5 1.5 0 0 1 3 19.5z"/>
+                </svg>
+                <span>Home</span>
+            </a>
+
+            <a href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M7 8h10a4 4 0 0 1 3.9 4.8l-.8 4A2.5 2.5 0 0 1 17.6 19h-.7l-2.2-3H9.3l-2.2 3h-.7a2.5 2.5 0 0 1-2.5-2.2l-.8-4A4 4 0 0 1 7 8z"/>
+                    <path d="M8 11v4M6 13h4M16.5 12.5h.01M18.5 14.5h.01"/>
+                </svg>
+                <span>Games</span>
+            </a>
+
+            <a href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 21a8 8 0 0 1 16 0"/>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+        </div>
+
+        <div class="nav-section nav-section-bottom">
+
+            <span class="nav-label">System</span>
+
+            <a href="#">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3a2 2 0 0 1 2 2v.3a7.7 7.7 0 0 1 1.8.8l.2-.2a2 2 0 1 1 2.8 2.8l-.2.2c.3.6.6 1.2.8 1.8h.3a2 2 0 0 1 0 4h-.3a7.7 7.7 0 0 1-.8 1.8l.2.2a2 2 0 1 1-2.8 2.8l-.2-.2a7.7 7.7 0 0 1-1.8.8v.3a2 2 0 0 1-4 0v-.3a7.7 7.7 0 0 1-1.8-.8l-.2.2A2 2 0 1 1 5.2 18l.2-.2a7.7 7.7 0 0 1-.8-1.8h-.3a2 2 0 0 1 0-4h.3a7.7 7.7 0 0 1 .8-1.8l-.2-.2A2 2 0 1 1 8 7.2l.2.2a7.7 7.7 0 0 1 1.8-.8V5a2 2 0 0 1 2-2z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                </svg>
+                <span>Settings</span>
+            </a>
+
+        </div>
+
+    </nav>
+
+    <div class="sidebar-status">
+        <span class="status-dot"></span>
+        <span>System Online</span>
+    </div>
+
+</aside>
+
+    <div class="main">
+        <div class="topbar">
+            <h1>Vorpex Nexus</h1>
+
+            <div class="top-right">
+                <button class="icon-btn" type="button" id="musicToggleBtn" aria-label="Open Music Center" aria-haspopup="true" aria-expanded="false">🎵</button>
+                <button class="icon-btn" type="button">🔔</button>
+                <button class="icon-btn" type="button">⚙</button>
+                <div id="clock">00:00:00</div>
+                <button type="button" id="authTrigger" class="auth-trigger">
+                    <span class="auth-trigger-avatar" id="authTriggerAvatar">👤</span>
+                    <span class="auth-trigger-label" id="authTriggerLabel">Sign In</span>
+                </button>
+            </div>
+        </div>
+
+        <section class="hero glass liquid" id="hero">
+            <div class="hero-content">
+                <span class="hero-badge">⭐ FEATURED GAME</span>
+
+                <h1>WEB RUNNER</h1>
+
+                <p>
+                    Swing through dangerous web lanes, dodge deadly traps,
+                    collect flies and survive as long as possible.
+                </p>
+
+                <div class="hero-buttons">
+                    <button class="play-btn" type="button" data-game-src="games/web-runner/index.html" data-game-title="WEB RUNNER">
+                        ▶ PLAY NOW
+                    </button>
+
+                    <button class="library-btn" type="button">
+                        📚 View Library
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-profile">
+                <div class="profile-circle">🕷️</div>
+                <h2>Web Runner</h2>
+                <p>Arcade • Endless Runner</p>
+            </div>
+
+            <div class="hero-profile">
+                <div class="profile-circle">🎮</div>
+                <h2>Player One</h2>
+                <p>Level 1 Beginner</p>
+            </div>
+        </section>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>🎮 Games</h3>
+                <h1>4</h1>
+                <p>Installed</p>
+            </div>
+
+            <div class="card">
+                <h3>🏆 Level</h3>
+                <h1>1</h1>
+                <p>Beginner</p>
+            </div>
+
+            <div class="card">
+                <h3>⭐ XP</h3>
+                <h1>0</h1>
+                <p>Experience</p>
+            </div>
+
+            <div class="card">
+                <h3>🕒 Play Time</h3>
+                <h1>0h</h1>
+                <p>Total</p>
+            </div>
+        </div>
+
+        <section class="featured-games">
+            <div class="section-title">
+                <h2>🎮 Featured Games</h2>
+                <p>Play the latest games available on Vorpex Nexus.</p>
+            </div>
+
+            <div class="games-grid">
+                <div class="game-card featured">
+                    <div class="game-icon">🕷️</div>
+                    <h3>Web Runner</h3>
+                    <p>Swing across dangerous web lanes, dodge obstacles and chase the highest score.</p>
+                    <div class="game-info">
+                        <span>⭐⭐⭐⭐☆</span>
+                        <span>Arcade</span>
+                    </div>
+                    <button class="play-game" type="button" data-game-src="games/web-runner/index.html" data-game-title="WEB RUNNER">▶ Play</button>
+                </div>
+
+                <div class="game-card featured">
+                    <div class="game-icon">🧱</div>
+                    <h3>Breakout</h3>
+                    <p>Break every brick, keep the ball alive and chase the best score.</p>
+                    <div class="game-info">
+                        <span>⭐⭐⭐⭐☆</span>
+                        <span>Arcade</span>
+                    </div>
+                    <button class="play-game" type="button" data-game-src="games/breakout/index.html" data-game-title="BREAKOUT">▶ Play</button>
+                </div>
+
+                <div class="game-card featured">
+                    <div class="game-icon">🧩</div>
+                    <h3>Tetris</h3>
+                    <p>Rotate falling blocks, clear lines and keep the board from filling up.</p>
+                    <div class="game-info">
+                        <span>⭐⭐⭐⭐☆</span>
+                        <span>Puzzle</span>
+                    </div>
+                    <button class="play-game" type="button" data-game-src="games/tetris/index.html" data-game-title="TETRIS">▶ Play</button>
+                </div>
+
+                <div class="game-card featured">
+                    <div class="game-icon">🏓</div>
+                    <h3>Pong</h3>
+                    <p>Classic paddle action. Beat the CPU to 7 points.</p>
+                    <div class="game-info">
+                        <span>⭐⭐⭐⭐☆</span>
+                        <span>Sports</span>
+                    </div>
+                    <button class="play-game" type="button" data-game-src="games/pong/index.html" data-game-title="PONG">▶ Play</button>
+                </div>
+
+                <div class="game-card featured">
+                    <div class="game-icon">🎛</div>
+                    <h3>Groove Machine</h3>
+                    <p>Create beats, melodies and export your own tracks.</p>
+                    <div class="game-info">
+                        <span>⭐⭐⭐⭐⭐</span>
+                        <span>Music Studio</span>
+                    </div>
+                    <button class="play-game" type="button" data-game-src="games/groove-machine/index.html" data-game-title="GROOVE MACHINE">▶ Play</button>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="updates">
+            <div class="section-title">
+                <h2>📰 Latest Updates</h2>
+                <p>What's new in Vorpex Nexus</p>
+            </div>
+
+            <div class="updates-list">
+                <div class="update-item">
+                    <span class="update-tag">NEW</span>
+                    <div>
+                        <h3>Web Runner Added</h3>
+                        <p>Our first official browser game is now available.</p>
+                    </div>
+                </div>
+
+                <div class="update-item">
+                    <span class="update-tag">NEW</span>
+                    <div>
+                        <h3>Breakout, Tetris & Pong Added</h3>
+                        <p>Three more classic games are now playable inside the launcher.</p>
+                    </div>
+                </div>
+
+                <div class="update-item">
+                    <span class="update-tag">UI</span>
+                    <div>
+                        <h3>Liquid Glass Interface</h3>
+                        <p>New futuristic glass effects have been added.</p>
+                    </div>
+                </div>
+
+                <div class="update-item">
+                    <span class="update-tag">DEV</span>
+                    <div>
+                        <h3>Launcher Progress</h3>
+                        <p>Vorpex Nexus is now evolving into a complete gaming platform.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="achievements">
+            <div class="section-title">
+                <h2>🏆 Achievement Preview</h2>
+                <p>Unlock achievements by playing games.</p>
+            </div>
+
+            <div class="achievement-grid">
+                <div class="achievement-card unlocked">
+                    <div class="achievement-icon">🕷️</div>
+                    <h3>First Run</h3>
+                    <p>Launch Web Runner for the first time.</p>
+                </div>
+
+                <div class="achievement-card locked">
+                    <div class="achievement-icon">🧱</div>
+                    <h3>Brick Breaker</h3>
+                    <p>Start Breakout for the first time.</p>
+                </div>
+
+                <div class="achievement-card locked">
+                    <div class="achievement-icon">🧩</div>
+                    <h3>Line Clear</h3>
+                    <p>Clear 10 lines in Tetris.</p>
+                </div>
+
+                <div class="achievement-card locked">
+                    <div class="achievement-icon">🏓</div>
+                    <h3>First Rally</h3>
+                    <p>Score your first point in Pong.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="settings-panel glass" id="settings">
+
+    <div class="section-title">
+        <h2>⚙ Settings</h2>
+        <p>Customize Vorpex Nexus</p>
+    </div>
+
+    <!-- ================= APPEARANCE ================= -->
+
+    <div class="appearance-settings">
+
+        <div class="settings-heading">
+            <h3>Appearance</h3>
+            <p>Customize the look and feel of your workspace.</p>
+        </div>
+
+
+        <!-- THEME -->
+
+        <div class="appearance-section">
+
+            <div class="appearance-label">
+                <strong>Theme</strong>
+                <span>Choose how Vorpex Nexus looks.</span>
+            </div>
+
+            <div class="segmented-control" id="themeControl">
+
+                <button
+                    type="button"
+                    class="active"
+                    data-theme="dark">
+                    Dark
+                </button>
+
+                <button
+                    type="button"
+                    data-theme="light">
+                    Light
+                </button>
+
+                <button
+                    type="button"
+                    data-theme="system">
+                    System
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACCENT COLOR -->
+
+        <div class="appearance-section">
+
+            <div class="appearance-label">
+                <strong>Accent Color</strong>
+                <span>Choose the primary interface color.</span>
+            </div>
+
+            <div class="accent-picker">
+
+                <button
+                    type="button"
+                    class="accent-option active"
+                    data-accent="#00c8ff">
+                    <span class="accent-dot cyan"></span>
+                    Cyan
+                </button>
+
+                <button
+                    type="button"
+                    class="accent-option"
+                    data-accent="#8b5cf6">
+                    <span class="accent-dot purple"></span>
+                    Purple
+                </button>
+
+                <button
+                    type="button"
+                    class="accent-option"
+                    data-accent="#3b82f6">
+                    <span class="accent-dot blue"></span>
+                    Blue
+                </button>
+
+                <label class="accent-option custom-accent">
+                    <span class="accent-dot custom"></span>
+                    Custom
+                    <input
+                        type="color"
+                        id="customAccent"
+                        value="#00c8ff">
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- WALLPAPER -->
+
+        <div class="appearance-section wallpaper-section">
+
+            <div class="appearance-label">
+                <strong>Wallpaper</strong>
+                <span>Set a custom background for your workspace.</span>
+            </div>
+
+            <div
+                class="wallpaper-preview"
+                id="wallpaperPreview">
+
+                <div class="wallpaper-preview-content">
+                    <span>Current Wallpaper</span>
+                </div>
+
+            </div>
+
+            <div class="wallpaper-actions">
+
+                <label
+                    for="wallpaperInput"
+                    class="primary-action">
+                    Choose Image
+                </label>
+
+                <input
+                    type="file"
+                    id="wallpaperInput"
+                    accept="image/*"
+                    hidden>
+
+                <button
+                    type="button"
+                    class="secondary-action"
+                    id="removeWallpaper">
+                    Remove
+                </button>
+
+            </div>
+
+
+            <!-- PRESETS -->
+
+            <div class="sub-setting">
+
+                <span class="sub-setting-title">
+                    Presets
+                </span>
+
+                <div class="wallpaper-presets">
+
+                    <button
+                        type="button"
+                        class="wallpaper-preset"
+                        data-wallpaper="space">
+                        🌌
+                    </button>
+
+                    <button
+                        type="button"
+                        class="wallpaper-preset"
+                        data-wallpaper="city">
+                        🌃
+                    </button>
+
+                    <button
+                        type="button"
+                        class="wallpaper-preset"
+                        data-wallpaper="ocean">
+                        🌊
+                    </button>
+
+                    <button
+                        type="button"
+                        class="wallpaper-preset"
+                        data-wallpaper="aurora">
+                        ✨
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- WALLPAPER EFFECTS -->
+
+        <div class="appearance-section">
+
+            <div class="appearance-label">
+                <strong>Wallpaper Effects</strong>
+                <span>Adjust the appearance of your background.</span>
+            </div>
+
+            <div class="range-settings">
+
+                <label class="range-row">
+                    <span>Blur</span>
+                    <input
+                        type="range"
+                        id="wallpaperBlur"
+                        min="0"
+                        max="20"
+                        value="6">
+                </label>
+
+                <label class="range-row">
+                    <span>Brightness</span>
+                    <input
+                        type="range"
+                        id="wallpaperBrightness"
+                        min="30"
+                        max="150"
+                        value="100">
+                </label>
+
+                <label class="range-row">
+                    <span>Overlay</span>
+                    <input
+                        type="range"
+                        id="wallpaperOverlay"
+                        min="0"
+                        max="80"
+                        value="42">
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <!-- GLASS -->
+
+        <div class="appearance-section">
+
+            <div class="appearance-label">
+                <strong>Glass</strong>
+                <span>Control the Liquid Glass appearance.</span>
+            </div>
+
+            <div class="range-settings">
+
+                <label class="range-row">
+                    <span>Refraction</span>
+
+                    <input
+                        type="range"
+                        id="glassRefraction"
+                        min="0"
+                        max="100"
+                        value="70">
+                </label>
+
+            </div>
+
+
+            <div class="glass-quality">
+
+                <span>Glass Quality</span>
+
+                <div class="segmented-control">
+
+                    <button
+                        type="button"
+                        data-glass-quality="low">
+                        Low
+                    </button>
+
+                    <button
+                        type="button"
+                        class="active"
+                        data-glass-quality="medium">
+                        Medium
+                    </button>
+
+                    <button
+                        type="button"
+                        data-glass-quality="high">
+                        High
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- EXISTING SYSTEM CONTROLS -->
+
+    <div class="appearance-section system-controls">
+
+        <div class="appearance-label">
+            <strong>System</strong>
+            <span>Performance and interface behavior.</span>
+        </div>
+
+        <label class="setting-row">
+            <span>Particles</span>
+            <input
+                type="checkbox"
+                id="toggleParticles"
+                checked>
+        </label>
+
+        <label class="setting-row">
+            <span>Animations</span>
+            <input
+                type="checkbox"
+                id="toggleAnimations"
+                checked>
+        </label>
+
+        <button
+            type="button"
+            id="resetProgress"
+            class="danger-btn">
+            Reset Progress
+        </button>
+
+    </div>
+
+</section>
+
+    <div id="gameOverlay">
+        <div class="game-header">
+            <h2 id="gameTitle">WEB RUNNER</h2>
+
+            <div class="game-controls">
+                <button id="restartGame" type="button">🔄 Restart</button>
+                <button id="exitGame" type="button">✖ Exit</button>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div id="gameLoader" class="game-loader" aria-live="polite">
+                <div class="loader-ring"></div>
+                <p id="loaderText">Launching WEB RUNNER…</p>
+            </div>
+            <iframe id="gameFrame" src="about:blank" frameborder="0" title="Vorpex Nexus Game"></iframe>
+        </div>
+    </div>
+
+    <div id="musicCenter" class="mc-state-normal" role="dialog" aria-label="Music Center" aria-hidden="true">
+        <div class="mc-header" id="mcHeader">
+            <div class="mc-title">
+                <span class="mc-dot"></span>
+                <span>Music Center</span>
+            </div>
+
+            <div class="mc-mini-bar" id="mcMiniBar">
+                <span class="mc-mini-title" id="mcMiniTitle">Nothing playing</span>
+                <button type="button" class="mc-btn mc-mini-btn" id="mcMiniPlayBtn" title="Play" aria-label="Play">▶</button>
+            </div>
+
+            <div class="mc-header-controls">
+                <button type="button" class="mc-btn" id="mcStateMini" title="Mini" aria-label="Mini view">▁</button>
+                <button type="button" class="mc-btn" id="mcStateNormal" title="Normal" aria-label="Normal view">▭</button>
+                <button type="button" class="mc-btn" id="mcStateExpanded" title="Expanded" aria-label="Expanded view">▢</button>
+                <button type="button" class="mc-btn" id="mcStateDocked" title="Dock" aria-label="Dock to corner">⬓</button>
+                <button type="button" class="mc-btn" id="mcStateFullscreen" title="Fullscreen" aria-label="Fullscreen view">⛶</button>
+                <button type="button" class="mc-btn mc-btn-close" id="mcClose" title="Close (Esc)" aria-label="Close Music Center">✖</button>
+            </div>
+        </div>
+
+        <div class="mc-body">
+            <div class="mc-visualizer-wrap" id="mcVisualizerWrap">
+                <canvas id="mcCanvas"></canvas>
+
+                <div class="mc-source-row" id="mcSourceRow">
+                    <button type="button" class="mc-chip" id="mcSourceMic" data-source="mic" title="Microphone" aria-pressed="false">🎤 Mic</button>
+                    <button type="button" class="mc-chip" id="mcSourceFile" data-source="file" title="Local files" aria-pressed="false">🎵 Files</button>
+                    <button type="button" class="mc-chip" id="mcSourceBrowser" data-source="browser" title="Browser / tab audio" aria-pressed="false">🌐 Browser</button>
+                </div>
+
+                <div class="mc-viz-style-row" id="mcVizStyleRow">
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="ring" title="Ring" aria-pressed="false">◎</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="bars" title="Bars" aria-pressed="false">▤</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="wave" title="Wave" aria-pressed="false">∿</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="particles" title="Particles" aria-pressed="false">✦</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="galaxy" title="Galaxy" aria-pressed="false">🌀</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="orbitals" title="Orbitals" aria-pressed="false">🪐</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="lightning" title="Lightning" aria-pressed="false">⚡</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="matrix" title="Matrix" aria-pressed="false">▥</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="spiral" title="Spiral" aria-pressed="false">@</button>
+                    <button type="button" class="mc-chip mc-viz-chip" data-style="reactor" title="Reactor" aria-pressed="false">⚛️</button>
+                </div>
+
+                <div class="mc-visualizer-placeholder" id="mcPlaceholder">
+                    <p>🎧 Choose a source to begin.</p>
+                    <p class="mc-dim">Microphone, local files, or browser tab audio.</p>
+                </div>
+
+                <div class="mc-dropzone" id="mcDropzone">Drop audio files to queue them</div>
+            </div>
+
+            <div class="mc-track-info">
+                <div class="mc-art" id="mcArt" aria-hidden="true">🎵</div>
+                <div class="mc-track-text">
+                    <span class="mc-np-title" id="mcNowPlaying">Nothing playing</span>
+                    <span class="mc-np-artist" id="mcArtist">—</span>
+                </div>
+            </div>
+
+            <div class="mc-seek-row">
+                <span class="mc-time" id="mcTimeCurrent">0:00</span>
+                <input type="range" id="mcSeekBar" class="mc-seek" min="0" max="100" value="0" step="0.1" aria-label="Seek position">
+                <span class="mc-time" id="mcTimeDuration">0:00</span>
+            </div>
+
+            <div class="mc-controls">
+                <div class="mc-transport">
+                    <button type="button" class="mc-btn" id="mcShuffleBtn" title="Shuffle" aria-pressed="false">🔀</button>
+                    <button type="button" class="mc-btn" id="mcPrevBtn" title="Previous track">⏮</button>
+                    <button type="button" class="mc-btn mc-btn-play" id="mcPlayPauseBtn" title="Play" aria-label="Play">▶</button>
+                    <button type="button" class="mc-btn" id="mcNextBtn" title="Next track">⏭</button>
+                    <button type="button" class="mc-btn" id="mcRepeatBtn" title="Repeat: off" aria-pressed="false">🔁</button>
+                </div>
+
+                <div class="mc-volume-row">
+                    <span aria-hidden="true">🔊</span>
+                    <input type="range" id="mcVolumeSlider" class="mc-volume" min="0" max="100" value="80" aria-label="Volume">
+                </div>
+
+                <div class="mc-secondary-actions">
+                    <button type="button" class="mc-btn" id="mcFileBtn" title="Add local tracks">📁</button>
+                    <button type="button" class="mc-btn" id="mcMicBtn" title="Use microphone">🎙</button>
+                    <button type="button" class="mc-btn" id="mcPlaylistToggle" title="Playlist" aria-expanded="false">📜</button>
+                    <input type="file" id="mcFileInput" accept="audio/*" multiple hidden>
+                </div>
+            </div>
+
+            <div class="mc-playlist-panel" id="mcPlaylistPanel" hidden>
+                <div class="mc-playlist-section">
+                    <div class="mc-playlist-heading">Queue</div>
+                    <ul class="mc-playlist-list" id="mcQueueList"></ul>
+                </div>
+                <div class="mc-playlist-section">
+                    <div class="mc-playlist-heading">Recently Played</div>
+                    <ul class="mc-playlist-list mc-recent-list" id="mcRecentList"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="mc-resize-handle" id="mcResizeHandle" aria-hidden="true"></div>
+    </div>
+
+    <!-- ================= AUTH MODAL ================= -->
+    <div id="authOverlay" class="auth-overlay" aria-hidden="true">
+        <div class="auth-modal glass" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+            <button type="button" class="auth-close" id="authClose" aria-label="Close">✖</button>
+
+            <!-- Signed-out: sign in / sign up -->
+            <div class="auth-view" id="authViewSignIn">
+                <div class="auth-brand">
+                    <div class="brand-mark">V</div>
+                </div>
+                <h2 id="authModalTitle">Welcome to Vorpex Nexus</h2>
+                <p class="auth-sub">Sign in to save your progress across devices, or continue as a guest on this device only.</p>
+
+                <div class="auth-providers">
+                    <button type="button" class="auth-provider-btn auth-google" id="googleSignInBtn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.6-2.5C16.9 3.4 14.7 2.4 12 2.4 6.9 2.4 2.7 6.6 2.7 11.7S6.9 21 12 21c6.9 0 9.3-4.9 9.3-8.9 0-.6-.1-1.1-.2-1.5H12z"/></svg>
+                        <span>Continue with Google</span>
+                    </button>
+                    <button type="button" class="auth-provider-btn auth-discord" id="discordSignInBtn">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="#5865F2"><path d="M20.3 5.3A17.6 17.6 0 0 0 15.9 4a13 13 0 0 0-.6 1.2 16.6 16.6 0 0 0-4.9 0A13 13 0 0 0 9.8 4a17.6 17.6 0 0 0-4.4 1.3C2.6 9 1.9 12.6 2.2 16.1a17.7 17.7 0 0 0 5.3 2.6c.4-.6.8-1.2 1.1-1.9-.6-.2-1.2-.5-1.7-.8l.4-.3a12.6 12.6 0 0 0 10.7 0l.4.3c-.5.3-1.1.6-1.7.8.3.7.7 1.3 1.1 1.9a17.6 17.6 0 0 0 5.3-2.6c.4-4-.6-7.6-2.8-10.8zM9.7 13.9c-.9 0-1.7-.9-1.7-1.9s.7-1.9 1.7-1.9 1.7.9 1.7 1.9-.8 1.9-1.7 1.9zm4.6 0c-.9 0-1.7-.9-1.7-1.9s.7-1.9 1.7-1.9 1.7.9 1.7 1.9-.8 1.9-1.7 1.9z"/></svg>
+                        <span>Continue with Discord</span>
+                    </button>
+                </div>
+
+                <div class="auth-divider"><span>or</span></div>
+
+                <button type="button" class="auth-guest-btn" id="guestContinueBtn">Continue as Guest</button>
+
+                <p class="auth-fineprint">New here? Signing in with Google or Discord automatically creates your Vorpex Nexus account — no separate sign-up needed.</p>
+            </div>
+
+            <!-- Signed-in: account panel -->
+            <div class="auth-view" id="authViewAccount" hidden>
+                <div class="auth-account-head">
+                    <div class="auth-account-avatar" id="accountAvatar">👤</div>
+                    <div>
+                        <h2 id="accountName">Player</h2>
+                        <p class="auth-sub" id="accountMeta">Signed in</p>
+                    </div>
+                </div>
+                <div class="auth-account-stats">
+                    <div><span id="accountLevel">1</span><small>Level</small></div>
+                    <div><span id="accountXp">0</span><small>XP</small></div>
+                    <div><span id="accountPlaytime">0m</span><small>Play time</small></div>
+                </div>
+                <button type="button" class="auth-signout-btn" id="signOutBtn">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/loading-screen.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/audioEngine.js"></script>
+    <script src="js/visualizer.js"></script>
+    <script src="js/launcherAudioLink.js"></script>
+    <script src="js/musicCenter.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/responsive-nav.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>
