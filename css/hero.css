@@ -1,0 +1,247 @@
+.hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:50px;
+    padding:40px;
+}
+
+.hero-content{
+    flex:1;
+}
+
+.hero-badge{
+    display:inline-block;
+    padding:8px 18px;
+    border-radius:30px;
+    background:rgba(0,170,255,.18);
+    color:#7dd3fc;
+    font-size:13px;
+    letter-spacing:1px;
+}
+
+.hero h1{
+    margin:20px 0;
+    font-size:54px;
+    line-height:1.1;
+}
+
+.hero h1 span{
+    color:#38bdf8;
+}
+
+.hero p{
+    color:rgba(255,255,255,.75);
+    line-height:1.8;
+    max-width:550px;
+}
+
+.hero-buttons{
+    margin-top:35px;
+    display:flex;
+    gap:15px;
+}
+
+.play-btn,
+.library-btn{
+
+    padding:15px 30px;
+
+    border:none;
+
+    border-radius:15px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    transition:.3s;
+
+}
+
+.play-btn{
+
+    background:#0ea5e9;
+
+    color:white;
+
+}
+
+.play-btn:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:0 0 30px rgba(14,165,233,.5);
+
+}
+
+.library-btn{
+
+    background:rgba(255,255,255,.08);
+
+    color:white;
+
+    backdrop-filter:blur(20px);
+
+}
+
+.profile-circle{
+
+    width:180px;
+    height:180px;
+
+    border-radius:50%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:80px;
+
+    background:linear-gradient(135deg,#00c6ff,#0072ff);
+
+    box-shadow:0 0 60px rgba(0,170,255,.4);
+
+}
+
+.hero-profile{
+
+    text-align:center;
+
+}
+
+.hero-profile h2{
+
+    margin-top:25px;
+
+}
+
+.hero-profile p{
+
+    color:#b5c7d8;
+
+}
+
+.liquid{
+
+    position:relative;
+
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.15);
+
+    background:rgba(255,255,255,.07);
+
+    /* --vorpex-vol defaults to 0 -> blur(30px), identical to Module 1 */
+    backdrop-filter:blur(calc(30px + var(--vorpex-vol, 0) * 8px));
+    -webkit-backdrop-filter:blur(calc(30px + var(--vorpex-vol, 0) * 8px));
+
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.25),
+        0 15px 40px rgba(0,0,0,.25),
+        0 0 calc(20px + var(--vorpex-mid, 0) * 60px) rgba(0,170,255, calc(var(--vorpex-mid, 0) * 0.45));
+
+}
+
+.liquid::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:350px;
+    height:350px;
+
+    border-radius:50%;
+
+    background:
+    radial-gradient(
+        circle,
+        rgba(0,170,255,.18),
+        transparent 70%
+    );
+
+    top:-150px;
+    left:-100px;
+
+    animation:float1 10s infinite ease-in-out;
+
+}
+
+.liquid::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:300px;
+    height:300px;
+
+    border-radius:50%;
+
+    background:
+    radial-gradient(
+        circle,
+        rgba(140,0,255,.12),
+        transparent 70%
+    );
+
+    right:-120px;
+    bottom:-120px;
+
+    animation:float2 12s infinite ease-in-out;
+
+}
+
+@keyframes float1{
+
+    0%{transform:translateY(0);}
+    50%{transform:translateY(40px);}
+    100%{transform:translateY(0);}
+
+}
+
+@keyframes float2{
+
+    0%{transform:translateY(0);}
+    50%{transform:translateY(-35px);}
+    100%{transform:translateY(0);}
+
+}
+
+.hero-content,
+.hero-profile{
+
+    position:relative;
+
+    z-index:2;
+
+}
+
+.liquid::before{
+
+    left:calc(var(--x,50%) - 175px);
+
+    top:calc(var(--y,50%) - 175px);
+
+    transition:left .12s linear,
+               top .12s linear;
+
+}
+
+/* Keep the right-side profiles visually separated and the title readable */
+.hero-profile{
+    min-width:160px;
+}
+
+.hero .hero-profile:first-of-type .profile-circle{
+    background:linear-gradient(135deg,#8be9fd,#00bfff);
+}
+
+.hero-profile{
+    max-width:220px;
+}
+
+.hero .hero-profile:nth-of-type(2) .profile-circle{
+    background:linear-gradient(135deg,#7c3aed,#00aaff);
+}

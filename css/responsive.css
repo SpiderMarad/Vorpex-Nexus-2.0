@@ -1,0 +1,243 @@
+/* =========================================================
+   VORPEX NEXUS — RESPONSIVE / CROSS-DEVICE FIXES
+   The original layout used a fixed 230-240px sidebar with
+   `display:flex` on <body> and NO collapse behavior at any
+   breakpoint, so on phones and small tablets the sidebar ate
+   most of the viewport and squeezed everything else. This
+   file adds an off-canvas sidebar with a hamburger toggle,
+   fixes tap target sizes, and removes iOS/Android edge cases
+   (safe-area insets, 100vh issues, tap-highlight flicker).
+   Loaded after style.css/redesign.css so these rules win.
+   ========================================================= */
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* Hamburger toggle — hidden on desktop, shown below the breakpoint */
+.sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    left: 14px;
+    z-index: 220;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(10, 13, 20, .75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.sidebar-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #f4f7fb;
+    border-radius: 2px;
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.sidebar-toggle[aria-expanded="true"] span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+.sidebar-toggle[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+}
+.sidebar-toggle[aria-expanded="true"] span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+#sidebarScrim {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 190;
+    background: rgba(0, 0, 0, .55);
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+
+#sidebarScrim.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Auth trigger button in the top bar */
+.auth-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, .05);
+    color: #f4f7fb;
+    cursor: pointer;
+    font-size: 13px;
+    min-height: 40px;
+}
+
+.auth-trigger-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(85, 185, 255, .18);
+    font-size: 15px;
+    overflow: hidden;
+}
+
+.auth-trigger-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+@media (max-width: 480px) {
+    .auth-trigger-label { display: none; }
+    .auth-trigger { padding: 6px; }
+}
+
+/* ---------------------------------------------------------
+   Tablet & phone breakpoint — off-canvas sidebar
+   --------------------------------------------------------- */
+@media (max-width: 900px) {
+
+    .sidebar-toggle {
+        display: flex;
+    }
+
+    .sidebar,
+    aside.sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 200;
+        transform: translateX(-104%);
+        transition: transform .28s ease;
+        width: min(82vw, 280px);
+        padding-top: calc(24px + env(safe-area-inset-top));
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 12px 0 40px rgba(0, 0, 0, .45);
+    }
+
+    .sidebar.sidebar-open,
+    aside.sidebar.sidebar-open {
+        transform: translateX(0);
+    }
+
+    body {
+        display: block;
+    }
+
+    .main {
+        width: 100%;
+        padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+        padding-top: calc(64px + env(safe-area-inset-top));
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .topbar h1 {
+        font-size: 20px;
+    }
+
+    .dashboard {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px;
+    }
+
+    .games-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px 18px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-buttons button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .dashboard {
+        grid-template-columns: 1fr 1fr !important;
+    }
+
+    .icon-btn {
+        min-width: 36px;
+        min-height: 36px;
+    }
+
+    #clock {
+        display: none;
+    }
+}
+
+/* ---------------------------------------------------------
+   Game overlay — full-bleed on phones, respects notches
+   --------------------------------------------------------- */
+@media (max-width: 900px) {
+    #gameOverlay {
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .game-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .game-controls button {
+        min-height: 40px;
+        padding: 0 14px;
+    }
+}
+
+/* ---------------------------------------------------------
+   Music Center — usable as a near-fullscreen sheet on phones
+   --------------------------------------------------------- */
+@media (max-width: 640px) {
+    #musicCenter {
+        left: 4vw !important;
+        right: 4vw !important;
+        width: 92vw !important;
+    }
+}
+
+/* Ensure every interactive control keeps an accessible tap target */
+button,
+a,
+input[type="checkbox"],
+input[type="range"] {
+    touch-action: manipulation;
+}

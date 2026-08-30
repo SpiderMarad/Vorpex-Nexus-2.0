@@ -1,0 +1,92 @@
+/* =========================================================
+   VORPEX NEXUS — THEME ENGINE
+   The Settings panel already had Dark/Light/System buttons
+   and a Glass Quality control in the markup, but nothing in
+   the codebase implemented them — no light palette existed
+   and no script listened for clicks. This file supplies the
+   light palette; js/settings.js supplies the behavior.
+   ========================================================= */
+
+body.theme-light {
+    --vn-bg: #eef1f6;
+    --vn-surface: rgba(255, 255, 255, 0.78);
+    --vn-surface-hover: rgba(255, 255, 255, 0.92);
+    --vn-border: rgba(15, 23, 42, 0.1);
+    --vn-border-hover: rgba(15, 23, 42, 0.18);
+    --vn-text: #10151f;
+    --vn-text-mute: #55607a;
+    --vn-tex-mute: #55607a;
+    --vn-text-muted: #55607a;
+}
+
+body.theme-light .background {
+    background: linear-gradient(160deg, #dfe6f2, #eef1f6 55%, #e4ebf7);
+}
+
+body.theme-light .sidebar {
+    background: rgba(255, 255, 255, 0.86);
+    border-right-color: rgba(15, 23, 42, 0.08);
+}
+
+body.theme-light .topbar .icon-btn,
+body.theme-light .auth-trigger {
+    background: rgba(15, 23, 42, 0.05);
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #10151f;
+}
+
+body.theme-light .card,
+body.theme-light .game-card,
+body.theme-light .update-item,
+body.theme-light .achievement-card,
+body.theme-light .glass {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+/* -----------------------------------------------------------
+   Glass quality — controls how heavy the backdrop-filter blur
+   is. "Low" helps low-power/older mobile devices where blur is
+   expensive; "High" is the original default look.
+   ----------------------------------------------------------- */
+body.glass-low .sidebar,
+body.glass-low .glass,
+body.glass-low #musicCenter,
+body.glass-low .card,
+body.glass-low .game-card {
+    backdrop-filter: blur(6px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(6px) saturate(110%) !important;
+}
+
+body.glass-medium .sidebar,
+body.glass-medium .glass,
+body.glass-medium #musicCenter,
+body.glass-medium .card,
+body.glass-medium .game-card {
+    backdrop-filter: blur(14px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(130%) !important;
+}
+
+body.glass-high .sidebar,
+body.glass-high .glass,
+body.glass-high #musicCenter,
+body.glass-high .card,
+body.glass-high .game-card {
+    backdrop-filter: blur(24px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+}
+
+/* Devices that can't do backdrop-filter at all (some older Android
+   WebViews) fall back to a solid-ish surface so text stays readable. */
+@supports not (backdrop-filter: blur(1px)) {
+    .sidebar,
+    .glass,
+    #musicCenter {
+        background: rgba(12, 15, 22, 0.94);
+    }
+    body.theme-light .sidebar,
+    body.theme-light .glass,
+    body.theme-light #musicCenter {
+        background: rgba(255, 255, 255, 0.94);
+    }
+}

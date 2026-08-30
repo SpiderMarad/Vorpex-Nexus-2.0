@@ -1,0 +1,688 @@
+/* ==========================================================================
+   MUSIC CENTER — floating popup shell
+   States: mini / normal / expanded / docked / fullscreen
+   The launcher underneath is never hidden except in fullscreen state.
+   ========================================================================== */
+
+:root{
+    --mc-accent:#00aaff;
+    --mc-accent-2:#8a2be2;
+    --mc-radius:20px;
+    --mc-border:rgba(255,255,255,.14);
+    --mc-bg:rgba(14,18,28,.72);
+}
+
+#musicCenter{
+    position:fixed;
+    top:120px;
+    left:calc(50vw - 190px);
+    width:380px;
+    height:460px;
+    min-width:300px;
+    min-height:160px;
+    max-width:96vw;
+    max-height:88vh;
+
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+
+    background:var(--mc-bg);
+    border:1px solid var(--mc-border);
+    border-radius:var(--mc-radius);
+    backdrop-filter:blur(28px);
+    -webkit-backdrop-filter:blur(28px);
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.18),
+        0 25px 60px rgba(0,0,0,.45),
+        0 0 40px rgba(0,170,255,.12);
+
+    z-index:5000;
+
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(16px) scale(.97);
+    transform-origin:top center;
+    transition:opacity .22s ease, transform .22s ease, visibility .22s ease,
+               width .28s cubic-bezier(.2,.8,.2,1), height .28s cubic-bezier(.2,.8,.2,1),
+               top .28s cubic-bezier(.2,.8,.2,1), left .28s cubic-bezier(.2,.8,.2,1),
+               right .28s cubic-bezier(.2,.8,.2,1), bottom .28s cubic-bezier(.2,.8,.2,1),
+               border-radius .28s ease;
+}
+
+#musicCenter.mc-open{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0) scale(1);
+}
+
+#musicCenter.mc-dragging,
+#musicCenter.mc-resizing{
+    transition:opacity .22s ease, visibility .22s ease;
+    user-select:none;
+}
+
+/* ---------------- header ---------------- */
+.mc-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:14px 16px;
+    background:rgba(255,255,255,.05);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    cursor:grab;
+    flex:0 0 auto;
+}
+
+.mc-header:active{ cursor:grabbing; }
+
+.mc-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:600;
+    letter-spacing:.02em;
+    font-size:14px;
+    white-space:nowrap;
+}
+
+.mc-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--mc-accent);
+    box-shadow:0 0 10px var(--mc-accent), 0 0 2px #fff;
+    animation:mcPulse 2.4s ease-in-out infinite;
+    flex:0 0 auto;
+}
+
+@keyframes mcPulse{
+    0%,100%{ opacity:.55; transform:scale(1); }
+    50%{ opacity:1; transform:scale(1.25); }
+}
+
+.mc-header-controls{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.mc-btn{
+    width:30px;
+    height:30px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    border-radius:9px;
+    background:rgba(255,255,255,.06);
+    color:#fff;
+    font-size:13px;
+    line-height:1;
+    cursor:pointer;
+    transition:background .2s ease, transform .18s ease, box-shadow .2s ease, color .2s ease;
+}
+
+.mc-btn:hover{
+    background:rgba(255,255,255,.16);
+    transform:translateY(-1px);
+}
+
+.mc-btn:focus-visible{
+    outline:2px solid var(--mc-accent);
+    outline-offset:2px;
+}
+
+.mc-btn:disabled{
+    opacity:.32;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+
+.mc-btn:disabled:hover{
+    background:rgba(255,255,255,.06);
+    transform:none;
+}
+
+input[type="range"]:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+
+.mc-btn.mc-active{
+    color:var(--mc-accent);
+    background:rgba(0,170,255,.18);
+    box-shadow:0 0 14px rgba(0,170,255,.35);
+}
+
+.mc-btn-close:hover{
+    background:rgba(255,77,94,.22);
+    color:#ff8a94;
+}
+
+/* ---------------- body ---------------- */
+.mc-body{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+}
+
+.mc-visualizer-wrap{
+    position:relative;
+    flex:1;
+    min-height:0;
+    background:radial-gradient(ellipse at 50% 40%, rgba(0,170,255,.10), rgba(5,7,13,.4) 70%);
+    overflow:hidden;
+}
+
+#mcCanvas{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+}
+
+.mc-visualizer-placeholder{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:6px;
+    padding:20px;
+    pointer-events:none;
+    transition:opacity .2s ease;
+}
+
+.mc-visualizer-placeholder.mc-hidden{
+    opacity:0;
+    visibility:hidden;
+}
+
+.mc-visualizer-placeholder p{
+    margin:0;
+    color:rgba(255,255,255,.85);
+    font-size:14px;
+}
+
+.mc-visualizer-placeholder .mc-dim{
+    color:rgba(255,255,255,.5);
+    font-size:12px;
+}
+
+/* ---------------- chips (source selector + visualizer style switcher) ---------------- */
+
+.mc-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    height:28px;
+    padding:0 12px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    background:rgba(10,14,26,.55);
+    backdrop-filter:blur(10px);
+    color:rgba(255,255,255,.78);
+    font-size:12px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:border-color .2s ease, color .2s ease, background .2s ease, transform .15s ease;
+}
+
+.mc-chip:hover{
+    color:#fff;
+    border-color:rgba(0,170,255,.5);
+    transform:translateY(-1px);
+}
+
+.mc-chip[aria-pressed="true"],
+.mc-chip.mc-active{
+    color:var(--mc-accent);
+    border-color:rgba(0,170,255,.55);
+    background:rgba(0,170,255,.15);
+    box-shadow:0 0 14px rgba(0,170,255,.3);
+}
+
+.mc-viz-chip{
+    width:28px;
+    height:28px;
+    padding:0;
+    justify-content:center;
+    font-size:14px;
+}
+
+.mc-source-row{
+    position:absolute;
+    top:12px;
+    left:12px;
+    right:12px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    z-index:3;
+}
+
+.mc-viz-style-row{
+    position:absolute;
+    bottom:12px;
+    left:12px;
+    right:12px;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    z-index:3;
+}
+
+/* Docked/mini contexts are tight on space — keep the overlays out of the way */
+#musicCenter.mc-state-docked .mc-viz-style-row{
+    display:none;
+}
+
+/* ---------------- drop zone (drag & drop local files) ---------------- */
+
+.mc-dropzone{
+    position:absolute;
+    inset:8px;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+    border:2px dashed rgba(0,170,255,.6);
+    border-radius:14px;
+    background:rgba(0,170,255,.10);
+    color:#eaf6ff;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.02em;
+    z-index:5;
+    pointer-events:none;
+}
+
+#musicCenter.mc-drag-over .mc-dropzone{
+    display:flex;
+}
+
+/* ---------------- track info ---------------- */
+
+.mc-track-info{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 16px 0 16px;
+}
+
+.mc-art{
+    flex:0 0 auto;
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    background:linear-gradient(135deg,#00c6ff,#0072ff);
+    box-shadow:0 0 20px rgba(0,170,255,.35);
+}
+
+.mc-track-text{
+    min-width:0;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.mc-np-title{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:rgba(255,255,255,.92);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.mc-np-artist{
+    display:block;
+    font-size:11.5px;
+    color:rgba(255,255,255,.5);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* ---------------- seek row ---------------- */
+
+.mc-seek-row{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 16px 0 16px;
+}
+
+.mc-time{
+    flex:0 0 auto;
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:rgba(255,255,255,.55);
+    min-width:34px;
+    text-align:center;
+}
+
+input[type="range"].mc-seek,
+input[type="range"].mc-volume{
+    -webkit-appearance:none;
+    appearance:none;
+    flex:1;
+    height:4px;
+    border-radius:999px;
+    background:rgba(255,255,255,.16);
+    outline:none;
+    cursor:pointer;
+}
+
+input[type="range"].mc-seek::-webkit-slider-thumb,
+input[type="range"].mc-volume::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    background:var(--mc-accent);
+    box-shadow:0 0 8px rgba(0,170,255,.7);
+    cursor:pointer;
+    transition:transform .15s ease;
+}
+
+input[type="range"].mc-seek::-webkit-slider-thumb:hover,
+input[type="range"].mc-volume::-webkit-slider-thumb:hover{
+    transform:scale(1.15);
+}
+
+input[type="range"].mc-seek::-moz-range-thumb,
+input[type="range"].mc-volume::-moz-range-thumb{
+    width:13px;
+    height:13px;
+    border:none;
+    border-radius:50%;
+    background:var(--mc-accent);
+    box-shadow:0 0 8px rgba(0,170,255,.7);
+    cursor:pointer;
+}
+
+/* ---------------- controls row ---------------- */
+
+.mc-controls{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:12px 16px;
+    background:rgba(255,255,255,.04);
+    border-top:1px solid rgba(255,255,255,.08);
+    flex-wrap:wrap;
+}
+
+.mc-transport{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+}
+
+.mc-btn-play{
+    width:38px;
+    height:38px;
+    font-size:16px;
+    background:rgba(0,170,255,.18);
+    color:var(--mc-accent);
+}
+
+.mc-btn-play:hover{
+    background:rgba(0,170,255,.3);
+}
+
+.mc-volume-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:1 1 90px;
+    min-width:80px;
+    max-width:140px;
+    font-size:13px;
+}
+
+.mc-secondary-actions{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+}
+
+/* ---------------- playlist panel ---------------- */
+
+.mc-playlist-panel{
+    flex:0 1 auto;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-height:180px;
+    overflow-y:auto;
+    padding:10px 16px 14px 16px;
+    border-top:1px solid rgba(255,255,255,.08);
+    background:rgba(0,0,0,.15);
+}
+
+.mc-playlist-panel[hidden]{
+    display:none;
+}
+
+.mc-playlist-heading{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.45);
+    margin-bottom:6px;
+}
+
+.mc-playlist-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+
+.mc-playlist-list li{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 8px;
+    border-radius:9px;
+    font-size:12.5px;
+    color:rgba(255,255,255,.75);
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+}
+
+.mc-playlist-list:not(.mc-recent-list) li:hover{
+    background:rgba(255,255,255,.08);
+    color:#fff;
+}
+
+.mc-playlist-list li.mc-playing{
+    color:var(--mc-accent);
+    background:rgba(0,170,255,.14);
+}
+
+.mc-playlist-list li .mc-track-name{
+    flex:1;
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.mc-playlist-list li .mc-track-remove{
+    flex:0 0 auto;
+    width:20px;
+    height:20px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:none;
+    background:transparent;
+    color:rgba(255,255,255,.4);
+    border-radius:6px;
+    cursor:pointer;
+    font-size:11px;
+}
+
+.mc-playlist-list li .mc-track-remove:hover{
+    background:rgba(255,77,94,.2);
+    color:#ff8a94;
+}
+
+.mc-playlist-empty{
+    font-size:12px;
+    color:rgba(255,255,255,.4);
+    padding:6px 8px;
+}
+
+.mc-recent-list li{
+    cursor:default;
+    color:rgba(255,255,255,.5);
+}
+
+/* ---------------- mini-bar (shown only in mini state, lives in the header) ---------------- */
+
+.mc-mini-bar{
+    display:none;
+    align-items:center;
+    gap:10px;
+    flex:1;
+    min-width:0;
+    margin:0 8px;
+}
+
+.mc-mini-title{
+    flex:1;
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:12.5px;
+    color:rgba(255,255,255,.75);
+}
+
+.mc-mini-btn{
+    width:26px;
+    height:26px;
+    flex:0 0 auto;
+    font-size:11px;
+}
+
+/* ---------------- resize handle ---------------- */
+.mc-resize-handle{
+    position:absolute;
+    right:2px;
+    bottom:2px;
+    width:18px;
+    height:18px;
+    cursor:nwse-resize;
+    background:
+        linear-gradient(135deg, transparent 0 45%, rgba(255,255,255,.35) 45% 55%, transparent 55% 100%),
+        linear-gradient(135deg, transparent 0 65%, rgba(255,255,255,.25) 65% 75%, transparent 75% 100%);
+    border-radius:0 0 var(--mc-radius) 0;
+    z-index:2;
+}
+
+/* ==========================================================================
+   STATES
+   ========================================================================== */
+
+/* Mini: compact bar, no visualizer canvas real-estate, controls only */
+#musicCenter.mc-state-mini{
+    height:64px !important;
+    width:320px;
+}
+#musicCenter.mc-state-mini .mc-body{ display:none; }
+#musicCenter.mc-state-mini .mc-resize-handle{ display:none; }
+#musicCenter.mc-state-mini .mc-mini-bar{ display:flex; }
+#musicCenter.mc-state-mini .mc-header-controls{
+    /* Only the essentials fit in a mini bar — hide the state switcher icons
+       except close, to avoid crowding; users can still press M to close. */
+    gap:4px;
+}
+#musicCenter.mc-state-mini .mc-header-controls .mc-btn:not(.mc-btn-close){
+    display:none;
+}
+
+/* Normal: default floating window (base #musicCenter size applies) */
+
+/* Expanded: larger floating window, centered-ish */
+#musicCenter.mc-state-expanded{
+    width:640px;
+    height:640px;
+}
+
+/* Docked: snaps to bottom-right corner, fixed compact size, no free dragging feel */
+#musicCenter.mc-state-docked{
+    top:auto !important;
+    left:auto !important;
+    right:24px;
+    bottom:24px;
+    width:320px;
+    height:400px;
+    border-radius:18px;
+}
+#musicCenter.mc-state-docked .mc-resize-handle{ display:none; }
+
+/* Fullscreen: fills the viewport, launcher visually covered but not destroyed */
+#musicCenter.mc-state-fullscreen{
+    top:0 !important;
+    left:0 !important;
+    right:0;
+    bottom:0;
+    width:100vw !important;
+    height:100vh !important;
+    max-width:100vw;
+    max-height:100vh;
+    border-radius:0;
+}
+#musicCenter.mc-state-fullscreen .mc-resize-handle{ display:none; }
+#musicCenter.mc-state-fullscreen .mc-header{ cursor:default; }
+
+/* Reduced motion respect (mirrors launcher-wide setting) */
+body.no-animations #musicCenter{
+    transition:none !important;
+}
+body.no-animations .mc-dot{
+    animation:none !important;
+}
+
+/* Small screens: keep the panel usable */
+@media (max-width:560px){
+    #musicCenter{
+        left:2vw !important;
+        width:96vw !important;
+    }
+    #musicCenter.mc-state-expanded{
+        height:80vh;
+    }
+    #musicCenter.mc-state-docked{
+        right:2vw;
+        left:auto !important;
+        width:94vw;
+    }
+}
