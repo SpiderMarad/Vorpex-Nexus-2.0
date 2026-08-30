@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signing in… — Vorpex Nexus</title>
+<style>
+  html,body{height:100%;margin:0;background:#07090f;color:#f4f7fb;font-family:Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;text-align:center}
+  .box{max-width:340px;padding:24px}
+  .ring{width:44px;height:44px;margin:0 auto 18px;border-radius:50%;
+    border:3px solid rgba(85,185,255,.25);border-top-color:#55b9ff;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  p{color:#9aa5b8;font-size:14px;line-height:1.5}
+  a{color:#55b9ff}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="ring" id="ring"></div>
+    <p id="status">Completing Discord sign-in…</p>
+  </div>
+
+  <script src="../js/auth.js"></script>
+  <script>
+    (function () {
+      var statusEl = document.getElementById("status");
+
+      function fail(msg) {
+        document.getElementById("ring").style.display = "none";
+        statusEl.textContent = msg + " ";
+        var link = document.createElement("a");
+        link.href = "../index.html";
+        link.textContent = "Back to Vorpex Nexus";
+        statusEl.appendChild(link);
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      var code = params.get("code");
+      var state = params.get("state");
+      var error = params.get("error");
+
+      if (error) return fail("Discord sign-in was cancelled or denied.");
+      if (!code) return fail("No authorization code was returned.");
+
+      var expectedState = null;
+      try { expectedState = sessionStorage.getItem("vorpex-oauth-state"); } catch (e) {}
+      if (expectedState && state !== expectedState) {
+        return fail("Sign-in state mismatch — please try again.");
+      }
+
+      var config = window.VORPEX_AUTH_CONFIG;
+      if (!config || config.DISCORD_TOKEN_ENDPOINT.indexOf("YOUR-DEPLOYED") === 0) {
+        return fail("The Discord token-exchange function hasn't been deployed yet — see SETUP.md.");
+      }
+
+      fetch(config.DISCORD_TOKEN_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code, redirect_uri: config.DISCORD_REDIRECT_URI }),
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("Token exchange failed (" + r.status + ")");
+          return r.json();
+        })
+        .then(function (profile) {
+          if (!profile || !profile.id) throw new Error("No profile returned");
+          if (typeof window.vorpexCompleteDiscordSignIn === "function") {
+            window.vorpexCompleteDiscordSignIn(profile);
+          } else {
+            fail("Sign-in succeeded but the app script didn't load.");
+          }
+        })
+        .catch(function (err) {
+          fail("Couldn't finish signing in (" + err.message + ").");
+        });
+    })();
+  </script>
+</body>
+</html>
