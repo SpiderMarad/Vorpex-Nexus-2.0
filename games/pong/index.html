@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Pong</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top, #1b2735, #090a0f);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #eee;
+    gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    letter-spacing: 4px;
+    color: #ffb347;
+    text-shadow: 0 0 10px #ffb347aa;
+  }
+  #hud {
+    display: flex;
+    gap: 24px;
+    font-size: 18px;
+  }
+  canvas {
+    background: #111820;
+    border: 3px solid #ffb347;
+    border-radius: 8px;
+    box-shadow: 0 0 25px #ffb34755;
+    touch-action: none;
+  }
+  #msg {
+    min-height: 24px;
+    font-size: 14px;
+    color: #ffb3b3;
+  }
+  button {
+    background: #ffb347;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>PONG</h1>
+<div id="hud">
+  <div>You: <span id="pScore">0</span></div>
+  <div>CPU: <span id="cScore">0</span></div>
+</div>
+<canvas id="game" width="420" height="420"></canvas>
+<div id="msg">Move mouse/finger up-down, or use arrow keys. First to 7 wins.</div>
+<button id="startBtn">Start</button>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const paddleW = 10, paddleH = 70;
+let player, cpu, ball, pScore, cScore, loopId, running;
+
+function reset() {
+  player = { x: 12, y: (H-paddleH)/2, speed: 6 };
+  cpu = { x: W - 12 - paddleW, y: (H-paddleH)/2, speed: 4.2 };
+  pScore = 0; cScore = 0;
+  document.getElementById('pScore').textContent = pScore;
+  document.getElementById('cScore').textContent = cScore;
+  resetBall(Math.random() < 0.5 ? 1 : -1);
+}
+
+function resetBall(dir) {
+  ball = { x: W/2, y: H/2, r: 7, dx: 4 * dir, dy: (Math.random()*4 - 2) || 3 };
+}
+
+function init() {
+  reset();
+  running = true;
+  document.getElementById('msg').textContent = '';
+  if (loopId) cancelAnimationFrame(loopId);
+  loop();
+}
+
+function loop() {
+  if (!running) return;
+  update();
+  draw();
+  loopId = requestAnimationFrame(loop);
+}
+
+function update() {
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  if (ball.y - ball.r < 0 || ball.y + ball.r > H) ball.dy *= -1;
+
+  // player paddle collision
+  if (ball.x - ball.r < player.x + paddleW && ball.x - ball.r > player.x &&
+      ball.y > player.y && ball.y < player.y + paddleH && ball.dx < 0) {
+    const hit = (ball.y - (player.y + paddleH/2)) / (paddleH/2);
+    ball.dx = Math.abs(ball.dx) * 1.05;
+    ball.dy = hit * 5;
+  }
+
+  // cpu paddle collision
+  if (ball.x + ball.r > cpu.x && ball.x + ball.r < cpu.x + paddleW &&
+      ball.y > cpu.y && ball.y < cpu.y + paddleH && ball.dx > 0) {
+    const hit = (ball.y - (cpu.y + paddleH/2)) / (paddleH/2);
+    ball.dx = -Math.abs(ball.dx) * 1.05;
+    ball.dy = hit * 5;
+  }
+
+  // scoring
+  if (ball.x < 0) {
+    cScore++;
+    document.getElementById('cScore').textContent = cScore;
+    checkWin();
+    if (running) resetBall(1);
+  } else if (ball.x > W) {
+    pScore++;
+    document.getElementById('pScore').textContent = pScore;
+    checkWin();
+    if (running) resetBall(-1);
+  }
+
+  // cpu ai tracking
+  const cpuCenter = cpu.y + paddleH/2;
+  if (cpuCenter < ball.y - 10) cpu.y += cpu.speed;
+  else if (cpuCenter > ball.y + 10) cpu.y -= cpu.speed;
+  cpu.y = Math.min(Math.max(cpu.y, 0), H - paddleH);
+
+  player.y = Math.min(Math.max(player.y, 0), H - paddleH);
+}
+
+function checkWin() {
+  if (pScore >= 7) {
+    running = false;
+    document.getElementById('msg').textContent = 'You win! Press Start to play again';
+  } else if (cScore >= 7) {
+    running = false;
+    document.getElementById('msg').textContent = 'CPU wins! Press Start to try again';
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#111820';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#444';
+  ctx.setLineDash([6, 8]);
+  ctx.beginPath();
+  ctx.moveTo(W/2, 0);
+  ctx.lineTo(W/2, H);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#ffb347';
+  ctx.fillRect(player.x, player.y, paddleW, paddleH);
+  ctx.fillRect(cpu.x, cpu.y, paddleW, paddleH);
+
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+}
+
+function movePaddle(clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const y = clientY - rect.top;
+  player.y = Math.min(Math.max(y - paddleH/2, 0), H - paddleH);
+}
+
+canvas.addEventListener('mousemove', e => movePaddle(e.clientY));
+canvas.addEventListener('touchmove', e => {
+  movePaddle(e.touches[0].clientY);
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowUp') player.y -= player.speed * 3;
+  if (e.key === 'ArrowDown') player.y += player.speed * 3;
+});
+
+document.getElementById('startBtn').onclick = init;
+
+reset();
+draw();
+</script>
+</body>
+</html>
