@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Tetris</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top, #1b2735, #090a0f);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #eee;
+    gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    letter-spacing: 4px;
+    color: #cc66ff;
+    text-shadow: 0 0 10px #cc66ffaa;
+  }
+  #wrap {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  canvas#game {
+    background: #111820;
+    border: 3px solid #cc66ff;
+    border-radius: 8px;
+    box-shadow: 0 0 25px #cc66ff55;
+  }
+  #side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 110px;
+  }
+  #side canvas {
+    background: #111820;
+    border: 2px solid #cc66ff88;
+    border-radius: 6px;
+  }
+  .stat { font-size: 14px; }
+  #msg {
+    min-height: 24px;
+    font-size: 14px;
+    color: #ffb3b3;
+  }
+  button {
+    background: #cc66ff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  #controls {
+    display: none;
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(2, 46px);
+    gap: 4px;
+    margin-top: 8px;
+  }
+  #controls button {
+    background: #222d3d;
+    color: #cc66ff;
+    border: 1px solid #cc66ff;
+    font-size: 16px;
+    padding: 0;
+  }
+  @media (max-width: 640px) {
+    #controls { display: grid; }
+  }
+</style>
+</head>
+<body>
+<h1>TETRIS</h1>
+<div id="wrap">
+  <canvas id="game" width="240" height="480"></canvas>
+  <div id="side">
+    <div class="stat">Score: <span id="score">0</span></div>
+    <div class="stat">Lines: <span id="lines">0</span></div>
+    <div class="stat">Best: <span id="best">0</span></div>
+    <div class="stat">Next:</div>
+    <canvas id="next" width="90" height="90"></canvas>
+  </div>
+</div>
+<div id="msg">Arrow keys to move/rotate, Space to hard-drop. Press Start.</div>
+<button id="startBtn">Start</button>
+<div id="controls">
+  <button id="rotBtn">⟳</button><button id="downBtn">▼</button><button id="dropBtn">⤓</button>
+  <button id="leftBtn">◀</button><div></div><button id="rightBtn">▶</button>
+</div>
+
+<script>
+const cols = 12, rows = 24, cell = 20;
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const nextCanvas = document.getElementById('next');
+const nctx = nextCanvas.getContext('2d');
+
+const COLORS = { I:'#33ccff', O:'#ffe94a', T:'#cc66ff', S:'#7CFC00', Z:'#ff5c5c', J:'#4d79ff', L:'#ffb347' };
+const SHAPES = {
+  I: [[0,1],[1,1],[2,1],[3,1]],
+  O: [[1,0],[2,0],[1,1],[2,1]],
+  T: [[1,0],[0,1],[1,1],[2,1]],
+  S: [[1,0],[2,0],[0,1],[1,1]],
+  Z: [[0,0],[1,0],[1,1],[2,1]],
+  J: [[0,0],[0,1],[1,1],[2,1]],
+  L: [[2,0],[0,1],[1,1],[2,1]],
+};
+const KEYS = Object.keys(SHAPES);
+
+let board, current, next, score, lines, best, loopId, running, dropCounter, dropInterval, lastTime;
+
+function emptyBoard() {
+  return Array.from({length: rows}, () => Array(cols).fill(null));
+}
+
+function randomPiece() {
+  const k = KEYS[Math.floor(Math.random()*KEYS.length)];
+  return { type: k, cells: SHAPES[k].map(c => c.slice()), x: 4, y: 0, color: COLORS[k] };
+}
+
+function rotate(piece) {
+  if (piece.type === 'O') return piece.cells.map(c => c.slice());
+  const cx = piece.cells.reduce((s,c)=>s+c[0],0)/piece.cells.length;
+  const cy = piece.cells.reduce((s,c)=>s+c[1],0)/piece.cells.length;
+  return piece.cells.map(([x,y]) => {
+    const rx = Math.round(cx + (y - cy));
+    const ry = Math.round(cy - (x - cx));
+    return [rx, ry];
+  });
+}
+
+function collides(cells, ox, oy) {
+  return cells.some(([x,y]) => {
+    const nx = x + ox, ny = y + oy;
+    if (nx < 0 || nx >= cols || ny >= rows) return true;
+    if (ny >= 0 && board[ny][nx]) return true;
+    return false;
+  });
+}
+
+function merge() {
+  current.cells.forEach(([x,y]) => {
+    const nx = x + current.x, ny = y + current.y;
+    if (ny >= 0) board[ny][nx] = current.color;
+  });
+}
+
+function clearLines() {
+  let cleared = 0;
+  for (let r = rows - 1; r >= 0; r--) {
+    if (board[r].every(c => c)) {
+      board.splice(r, 1);
+      board.unshift(Array(cols).fill(null));
+      cleared++;
+      r++;
+    }
+  }
+  if (cleared) {
+    const points = [0, 100, 300, 500, 800][cleared] || 1000;
+    score += points;
+    lines += cleared;
+    document.getElementById('score').textContent = score;
+    document.getElementById('lines').textContent = lines;
+    dropInterval = Math.max(120, 700 - Math.floor(lines/10) * 60);
+  }
+}
+
+function spawn() {
+  current = next;
+  current.x = 4; current.y = -1;
+  next = randomPiece();
+  drawNext();
+  if (collides(current.cells, current.x, current.y)) {
+    gameOver();
+  }
+}
+
+function init() {
+  board = emptyBoard();
+  score = 0; lines = 0;
+  best = Number(localStorage.getItem('tetrisBest') || 0);
+  document.getElementById('score').textContent = score;
+  document.getElementById('lines').textContent = lines;
+  document.getElementById('best').textContent = best;
+  dropInterval = 700;
+  dropCounter = 0;
+  lastTime = 0;
+  next = randomPiece();
+  spawn();
+  running = true;
+  document.getElementById('msg').textContent = '';
+  if (loopId) cancelAnimationFrame(loopId);
+  loop(0);
+}
+
+function hardDrop() {
+  while (!collides(current.cells, current.x, current.y+1)) current.y++;
+  lockPiece();
+}
+
+function lockPiece() {
+  merge();
+  clearLines();
+  spawn();
+  dropCounter = 0;
+}
+
+function loop(time) {
+  if (!running) return;
+  const delta = time - lastTime;
+  lastTime = time;
+  dropCounter += delta;
+  if (dropCounter > dropInterval) {
+    if (!collides(current.cells, current.x, current.y+1)) {
+      current.y++;
+    } else {
+      lockPiece();
+    }
+    dropCounter = 0;
+  }
+  draw();
+  loopId = requestAnimationFrame(loop);
+}
+
+function gameOver() {
+  running = false;
+  cancelAnimationFrame(loopId);
+  if (score > best) {
+    best = score;
+    localStorage.setItem('tetrisBest', best);
+    document.getElementById('best').textContent = best;
+  }
+  document.getElementById('msg').textContent = 'Game over — press Start to try again';
+}
+
+function drawCell(c, x, y, color) {
+  c.fillStyle = color;
+  c.fillRect(x*cell+1, y*cell+1, cell-2, cell-2);
+}
+
+function draw() {
+  ctx.fillStyle = '#111820';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (board[r][c]) drawCell(ctx, c, r, board[r][c]);
+    }
+  }
+
+  current.cells.forEach(([x,y]) => {
+    const ny = y + current.y;
+    if (ny >= 0) drawCell(ctx, x + current.x, ny, current.color);
+  });
+}
+
+function drawNext() {
+  nctx.fillStyle = '#111820';
+  nctx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+  const ncell = 18;
+  next.cells.forEach(([x,y]) => {
+    nctx.fillStyle = next.color;
+    nctx.fillRect(x*ncell+8, y*ncell+8, ncell-2, ncell-2);
+  });
+}
+
+function move(dx) {
+  if (!running) return;
+  if (!collides(current.cells, current.x+dx, current.y)) current.x += dx;
+}
+
+function softDrop() {
+  if (!running) return;
+  if (!collides(current.cells, current.x, current.y+1)) current.y++;
+  else lockPiece();
+}
+
+function doRotate() {
+  if (!running) return;
+  const rotated = rotate(current);
+  const kicks = [0, -1, 1, -2, 2];
+  for (const k of kicks) {
+    if (!collides(rotated, current.x+k, current.y)) {
+      current.cells = rotated;
+      current.x += k;
+      return;
+    }
+  }
+}
+
+document.addEventListener('keydown', e => {
+  switch (e.key) {
+    case 'ArrowLeft': move(-1); break;
+    case 'ArrowRight': move(1); break;
+    case 'ArrowDown': softDrop(); break;
+    case 'ArrowUp': doRotate(); break;
+    case ' ': hardDrop(); e.preventDefault(); break;
+  }
+});
+
+document.getElementById('leftBtn').onclick = () => move(-1);
+document.getElementById('rightBtn').onclick = () => move(1);
+document.getElementById('downBtn').onclick = () => softDrop();
+document.getElementById('rotBtn').onclick = () => doRotate();
+document.getElementById('dropBtn').onclick = () => hardDrop();
+document.getElementById('startBtn').onclick = init;
+
+best = Number(localStorage.getItem('tetrisBest') || 0);
+document.getElementById('best').textContent = best;
+board = emptyBoard();
+next = randomPiece();
+current = randomPiece();
+current.y = -1;
+drawNext();
+draw();
+</script>
+</body>
+</html>
