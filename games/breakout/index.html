@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Breakout</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top, #1b2735, #090a0f);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #eee;
+    gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    letter-spacing: 4px;
+    color: #33ccff;
+    text-shadow: 0 0 10px #33ccffaa;
+  }
+  #hud {
+    display: flex;
+    gap: 24px;
+    font-size: 16px;
+  }
+  canvas {
+    background: #111820;
+    border: 3px solid #33ccff;
+    border-radius: 8px;
+    box-shadow: 0 0 25px #33ccff55;
+    touch-action: none;
+  }
+  #msg {
+    min-height: 24px;
+    font-size: 14px;
+    color: #ffb3b3;
+  }
+  button {
+    background: #33ccff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>BREAKOUT</h1>
+<div id="hud">
+  <div>Score: <span id="score">0</span></div>
+  <div>Lives: <span id="lives">3</span></div>
+  <div>Best: <span id="best">0</span></div>
+</div>
+<canvas id="game" width="420" height="420"></canvas>
+<div id="msg">Move mouse/finger to steer paddle. Press Start.</div>
+<button id="startBtn">Start</button>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const paddle = { w: 80, h: 12, x: (W-80)/2, y: H-30, speed: 8 };
+let ball, bricks, score, lives, best, loopId, running, rows, cols, brickW, brickH, pad;
+
+function initBricks() {
+  rows = 5; cols = 8; pad = 6;
+  brickW = (W - pad*(cols+1)) / cols;
+  brickH = 18;
+  bricks = [];
+  const colors = ['#ff5c5c','#ffb347','#ffe94a','#7CFC00','#33ccff'];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      bricks.push({ x: pad + c*(brickW+pad), y: 40 + r*(brickH+pad), w: brickW, h: brickH, alive: true, color: colors[r % colors.length] });
+    }
+  }
+}
+
+function resetBall() {
+  ball = { x: W/2, y: H-50, r: 7, dx: 4, dy: -4 };
+  paddle.x = (W - paddle.w) / 2;
+}
+
+function init() {
+  score = 0; lives = 3;
+  best = Number(localStorage.getItem('breakoutBest') || 0);
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('best').textContent = best;
+  initBricks();
+  resetBall();
+  running = true;
+  document.getElementById('msg').textContent = '';
+  if (loopId) cancelAnimationFrame(loopId);
+  loop();
+}
+
+function loop() {
+  if (!running) return;
+  update();
+  draw();
+  loopId = requestAnimationFrame(loop);
+}
+
+function update() {
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  if (ball.x - ball.r < 0 || ball.x + ball.r > W) ball.dx *= -1;
+  if (ball.y - ball.r < 0) ball.dy *= -1;
+
+  if (ball.y + ball.r > paddle.y && ball.y + ball.r < paddle.y + paddle.h &&
+      ball.x > paddle.x && ball.x < paddle.x + paddle.w && ball.dy > 0) {
+    const hit = (ball.x - (paddle.x + paddle.w/2)) / (paddle.w/2);
+    ball.dx = hit * 6;
+    ball.dy = -Math.abs(ball.dy);
+  }
+
+  if (ball.y - ball.r > H) {
+    lives--;
+    document.getElementById('lives').textContent = lives;
+    if (lives <= 0) {
+      gameOver();
+      return;
+    }
+    resetBall();
+  }
+
+  bricks.forEach(b => {
+    if (!b.alive) return;
+    if (ball.x + ball.r > b.x && ball.x - ball.r < b.x + b.w &&
+        ball.y + ball.r > b.y && ball.y - ball.r < b.y + b.h) {
+      b.alive = false;
+      ball.dy *= -1;
+      score++;
+      document.getElementById('score').textContent = score;
+    }
+  });
+
+  if (bricks.every(b => !b.alive)) {
+    running = false;
+    document.getElementById('msg').textContent = 'You cleared the board! Press Start to play again';
+    updateBest();
+  }
+}
+
+function updateBest() {
+  if (score > best) {
+    best = score;
+    localStorage.setItem('breakoutBest', best);
+    document.getElementById('best').textContent = best;
+  }
+}
+
+function gameOver() {
+  running = false;
+  cancelAnimationFrame(loopId);
+  updateBest();
+  document.getElementById('msg').textContent = 'Game over — press Start to try again';
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = '#111820';
+  ctx.fillRect(0, 0, W, H);
+
+  bricks.forEach(b => {
+    if (!b.alive) return;
+    ctx.fillStyle = b.color;
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+  });
+
+  ctx.fillStyle = '#33ccff';
+  ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+}
+
+function movePaddle(clientX) {
+  const rect = canvas.getBoundingClientRect();
+  const x = clientX - rect.left;
+  paddle.x = Math.min(Math.max(x - paddle.w/2, 0), W - paddle.w);
+}
+
+canvas.addEventListener('mousemove', e => movePaddle(e.clientX));
+canvas.addEventListener('touchmove', e => {
+  movePaddle(e.touches[0].clientX);
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') paddle.x = Math.max(paddle.x - paddle.speed*3, 0);
+  if (e.key === 'ArrowRight') paddle.x = Math.min(paddle.x + paddle.speed*3, W - paddle.w);
+});
+
+document.getElementById('startBtn').onclick = init;
+
+best = Number(localStorage.getItem('breakoutBest') || 0);
+document.getElementById('best').textContent = best;
+initBricks();
+resetBall();
+draw();
+</script>
+</body>
+</html>
